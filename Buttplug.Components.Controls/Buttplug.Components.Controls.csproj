@@ -156,6 +156,10 @@
       <Project>{fc4af8fe-8c21-4e07-8d24-7fb7791149d0}</Project>
       <Name>Buttplug.Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Buttplug.Server.Managers.ArduinoManager\Buttplug.Server.Managers.ArduinoManager.csproj">
+      <Project>{d204b710-6170-43f7-84e2-e758062f9ce3}</Project>
+      <Name>Buttplug.Server.Managers.ArduinoManager</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Buttplug.Server.Managers.ErosTek\Buttplug.Server.Managers.ETSerialManager.csproj">
       <Project>{436cf4ff-ae10-45da-8909-9aacf1ed6425}</Project>
       <Name>Buttplug.Server.Managers.ETSerialManager</Name>

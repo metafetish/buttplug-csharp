@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Threading;
 using Buttplug.Server;
 using Buttplug.Server.Managers.ETSerialManager;
+using Buttplug.Server.Managers.ArduinoManager;
 using Buttplug.Server.Managers.SimulatorManager;
 using Buttplug.Server.Managers.UWPBluetoothManager;
 using Buttplug.Server.Managers.XInputGamepadManager;
@@ -139,6 +140,7 @@ namespace Buttplug.Components.Controls
 
             bpServer.AddDeviceSubtypeManager(aLogger => new XInputGamepadManager(aLogger));
             bpServer.AddDeviceSubtypeManager(aLogger => new ETSerialManager(aLogger));
+            bpServer.AddDeviceSubtypeManager(aLogger => new ArduinoSerialManager(aLogger));
 
 #if DEBUG
             bpServer.AddDeviceSubtypeManager(aLogger => new SimulatorManager(aLogger));

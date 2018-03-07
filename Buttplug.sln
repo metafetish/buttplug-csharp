@@ -1,15 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26730.15
+VisualStudioVersion = 15.0.27130.2036
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Buttplug.Core", "Buttplug.Core\Buttplug.Core.csproj", "{FC4AF8FE-8C21-4E07-8D24-7FB7791149D0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Buttplug.Core", "Buttplug.Core\Buttplug.Core.csproj", "{FC4AF8FE-8C21-4E07-8D24-7FB7791149D0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Buttplug.ProjectFiles", "Buttplug.ProjectFiles\Buttplug.ProjectFiles.csproj", "{437B1971-00B6-4638-A700-756F4B7610AA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Buttplug.Client", "Buttplug.Client\Buttplug.Client.csproj", "{1592D845-8FE5-4F33-A665-D7675C9AAEE4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Buttplug.Client", "Buttplug.Client\Buttplug.Client.csproj", "{1592D845-8FE5-4F33-A665-D7675C9AAEE4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Buttplug.Server", "Buttplug.Server\Buttplug.Server.csproj", "{23D9EC18-2DBA-4149-A951-B84786D4BFA6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Buttplug.Server", "Buttplug.Server\Buttplug.Server.csproj", "{23D9EC18-2DBA-4149-A951-B84786D4BFA6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Buttplug.Client.Test", "Buttplug.Client.Test\Buttplug.Client.Test.csproj", "{F8AAA25F-6C62-4BCC-A916-9B52B9A01F52}"
 EndProject
@@ -46,6 +46,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Buttplug.Server.Managers.SimulatorManager", "Buttplug.Server.Managers.SimulatorManager\Buttplug.Server.Managers.SimulatorManager.csproj", "{334D5731-7619-471E-85C3-240831514741}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Buttplug.Server.Managers.ETSerialManager", "Buttplug.Server.Managers.ErosTek\Buttplug.Server.Managers.ETSerialManager.csproj", "{436CF4FF-AE10-45DA-8909-9AACF1ED6425}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Buttplug.Server.Managers.ArduinoManager", "Buttplug.Server.Managers.ArduinoManager\Buttplug.Server.Managers.ArduinoManager.csproj", "{D204B710-6170-43F7-84E2-E758062F9CE3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -139,6 +141,10 @@ Global
 		{436CF4FF-AE10-45DA-8909-9AACF1ED6425}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{436CF4FF-AE10-45DA-8909-9AACF1ED6425}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{436CF4FF-AE10-45DA-8909-9AACF1ED6425}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D204B710-6170-43F7-84E2-E758062F9CE3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D204B710-6170-43F7-84E2-E758062F9CE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D204B710-6170-43F7-84E2-E758062F9CE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D204B710-6170-43F7-84E2-E758062F9CE3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
