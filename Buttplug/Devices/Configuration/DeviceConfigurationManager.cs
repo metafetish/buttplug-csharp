@@ -98,7 +98,7 @@ namespace Buttplug.Devices.Configuration
                 List<DeviceConfiguration> conf;
                 DeviceConfiguration defaults;
 
-                conf = obj["configurations"].Value<JArray>().ToObject<List<DeviceConfiguration>>();
+                conf = obj["configurations"]?.Value<JArray>().ToObject<List<DeviceConfiguration>>() ?? new List<DeviceConfiguration>();
                 try
                 {
                     defaults = obj["defaults"].Value<JObject>().ToObject<DeviceConfiguration>();
@@ -204,6 +204,12 @@ namespace Buttplug.Devices.Configuration
 
             _protocolConfigs[aProtocolName].Add(aConfiguration);
         }
+
+        public List<IProtocolConfiguration> GetProtocolConfig(string aProtocolName)
+        {
+            return _protocolConfigs[aProtocolName];
+        }
+
 
         public void AddWhitelist(IProtocolConfiguration aConfiguration)
         {

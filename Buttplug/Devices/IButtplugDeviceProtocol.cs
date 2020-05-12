@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Buttplug.Core.Messages;
+using Buttplug.Devices.Configuration;
 using JetBrains.Annotations;
 
 namespace Buttplug.Devices
@@ -42,6 +43,14 @@ namespace Buttplug.Devices
         /// <returns>Response, usually <see cref="Ok"/> or <see cref="Error"/>.</returns>
         [NotNull]
         Task InitializeAsync(CancellationToken aToken = default(CancellationToken));
+
+        /// <summary>
+        /// Configures a device. Required for devices that may share protocol definitions with
+        /// varying numbers of device features, etc.
+        /// </summary>
+        /// <returns>Response, usually <see cref="Ok"/> or <see cref="Error"/>.</returns>
+        [NotNull]
+        Task ConfigureAsync(DeviceConfiguration aConfig, CancellationToken aToken = default(CancellationToken));
 
         /// <summary>
         /// Retrieves the message attributes for the device associated with this message. Used for

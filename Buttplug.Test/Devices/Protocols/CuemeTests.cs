@@ -9,9 +9,11 @@
 
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading.Tasks;
 using Buttplug.Core.Messages;
 using Buttplug.Devices;
+using Buttplug.Devices.Configuration;
 using Buttplug.Devices.Protocols;
 using Buttplug.Test.Devices.Protocols.Utils;
 using JetBrains.Annotations;
@@ -28,7 +30,12 @@ namespace Buttplug.Test.Devices.Protocols
         [SetUp]
         public async Task Init()
         {
-            await _testUtil.SetupTest<CuemeProtocol>("FUNCODE_");
+            DeviceConfigurationManager.LoadBaseConfigurationFromResource();
+            var mgr = DeviceConfigurationManager.Manager;
+            var pconfigs = mgr.GetProtocolConfig("cueme");
+            var configs = pconfigs.First().DeviceConfigs;
+
+            await _testUtil.SetupTest<CuemeProtocol>("FUNCODE_ABABABABAB_3", configs);
         }
 
         [Test]

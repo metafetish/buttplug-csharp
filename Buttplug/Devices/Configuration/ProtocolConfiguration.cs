@@ -23,7 +23,10 @@ namespace Buttplug.Devices.Configuration
         public static IDictionary<TKey, TValue> Merge<TKey, TValue>(IDictionary<TKey, TValue> dictA, IDictionary<TKey, TValue> dictB)
             where TValue : class
         {
-            return dictA.Keys.Union(dictB.Keys).ToDictionary(k => k, k => dictA.ContainsKey(k) ? dictA[k] : dictB[k]);
+            return
+                dictA == null ? dictB :
+                dictB == null ? dictA :
+                dictA.Keys.Union(dictB.Keys).ToDictionary(k => k, k => dictA.ContainsKey(k) ? dictA[k] : dictB[k]);
         }
 
         public void AddDefaults(DeviceConfiguration aDefaults)

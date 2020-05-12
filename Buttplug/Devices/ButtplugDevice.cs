@@ -116,25 +116,36 @@ namespace Buttplug.Devices
         /// <inheritdoc />
         public virtual async Task InitializeAsync(List<DeviceConfiguration> aConfigurations, CancellationToken aToken)
         {
-            // Run initialize in order to set the DeviceConfigIdentifier, if needed.,
+            // Run initialize in order to set the DeviceConfigIdentifier, if needed.
             await _protocol.InitializeAsync(aToken);
+
             // Look up the identifier in the device configuration records
             var ident = (from config in aConfigurations
                 where config.Identifiers.Contains(_protocol.DeviceConfigIdentifier)
                 select config).ToList();
+
             // If all we have is one configuration, it may be the default. If
             // nothing else was found, select it. This will happen for cases
             // like XInput.
-            if (ident.Count() == 0 && aConfigurations.Count == 1)
+            if (!ident.Any() && aConfigurations.Count == 1)
             {
                 ident.Add(aConfigurations.First());
             }
 
-            if (ident.Count() > 0)
+            if (ident.Any())
             {
                 // This will usually be en-us for now, until we get more languages in.
                 Name = ident.First().Names.First().Value;
             }
+
+            // Grab the first config, assume it's just defaults for now
+            // todo: get a pure default config
+            if (!ident.Any() && aConfigurations.Any())
+            {
+                ident.Add(aConfigurations.First());
+            }
+
+            await _protocol.ConfigureAsync(ident.Any() ? ident.First() : null, aToken);
         }
 
         /// <inheritdoc />

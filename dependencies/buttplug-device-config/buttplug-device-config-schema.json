@@ -24,7 +24,7 @@
             "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$": {
               "type": "object",
               "patternProperties": {
-                "^(tx|rx|firmware|txmode|txvibrate|rxtouch|rxaccel|whitelist)$": {
+                "^(tx|rx|firmware|txmode|txvibrate|rxtouch|rxaccel|rxpressure|whitelist)$": {
                   "$ref": "#/components/uuid"
                 }
               },
@@ -99,6 +99,15 @@
       },
       "minItems": 1
     },
+    "FeatureOrder": {
+      "description": "Specifies the order features are exposed in by the ButtplugMessages.",
+      "type": "array",
+      "items": {
+        "minimum": 0,
+        "type": "integer"
+      },
+      "minItems": 2
+    },
     "NullMessageAttributes": {
       "description": "Attributes for device message that have no attributes.",
       "type": "object",
@@ -111,7 +120,8 @@
       "type": "object",
       "properties": {
         "FeatureCount": { "$ref": "#/components/FeatureCount" },
-        "StepCount": { "$ref": "#/components/StepCount" }
+        "StepCount": { "$ref": "#/components/StepCount" },
+        "FeatureOrder": { "$ref": "#/components/FeatureOrder" }
       },
       "additionalProperties": false,
       "minProperties": 0
@@ -217,7 +227,7 @@
     },
     "defaults-definition": {
       "type": "object",
-      "properties" : {
+      "properties": {
         "name": {
           "$ref": "#/components/name-field"
         },

@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Buttplug.Core;
 using Buttplug.Core.Logging;
 using Buttplug.Core.Messages;
+using Buttplug.Devices.Configuration;
 using JetBrains.Annotations;
 
 namespace Buttplug.Devices
@@ -85,8 +86,22 @@ namespace Buttplug.Devices
             return await MsgFuncs[aMsg.GetType()].Function.Invoke(aMsg, aToken).ConfigureAwait(false);
         }
 
+        /// <inheritdoc />
         public virtual Task InitializeAsync(CancellationToken aToken)
         {
+            return Task.FromResult<ButtplugMessage>(new Ok(ButtplugConsts.SystemMsgId));
+        }
+
+        /// <inheritdoc />
+        public virtual Task ConfigureAsync(DeviceConfiguration aConfig, CancellationToken aToken)
+        {
+            // Default behaviour: make sure there's a StopDeviceCmd or errors will be thrown later
+            if (!MsgFuncs.ContainsKey(typeof(StopDeviceCmd)))
+            {
+                AddMessageHandler<StopDeviceCmd>((message, token) =>
+                    Task.FromResult<ButtplugMessage>(new Ok(message.Id)));
+            }
+
             return Task.FromResult<ButtplugMessage>(new Ok(ButtplugConsts.SystemMsgId));
         }
 

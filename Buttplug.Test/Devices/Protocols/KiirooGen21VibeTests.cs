@@ -13,6 +13,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Buttplug.Core.Messages;
 using Buttplug.Devices;
+using Buttplug.Devices.Configuration;
 using Buttplug.Devices.Protocols;
 using Buttplug.Test.Devices.Protocols.Utils;
 using FluentAssertions;
@@ -37,7 +38,7 @@ namespace Buttplug.Test.Devices.Protocols
                 }
 
                 var testUtil = new ProtocolTestUtils();
-                await testUtil.SetupTest<KiirooGen21Protocol>(item.Key);
+                await testUtil.SetupTest<KiirooGen21Protocol>(item.Key, new List<DeviceConfiguration>());
                 var expected = new Dictionary<Type, uint>()
                 {
                     { typeof(StopDeviceCmd), 0 },
@@ -68,7 +69,7 @@ namespace Buttplug.Test.Devices.Protocols
                 }
 
                 var testUtil = new ProtocolTestUtils();
-                await testUtil.SetupTest<KiirooGen21Protocol>(item.Key);
+                await testUtil.SetupTest<KiirooGen21Protocol>(item.Key, new List<DeviceConfiguration>());
                 var expected = new byte[] { 1, 0 };
                 for (var i = 0u; i < item.Value.VibeCount; ++i)
                 {
@@ -95,7 +96,7 @@ namespace Buttplug.Test.Devices.Protocols
                 }
 
                 var testUtil = new ProtocolTestUtils();
-                await testUtil.SetupTest<KiirooGen21Protocol>(item.Key);
+                await testUtil.SetupTest<KiirooGen21Protocol>(item.Key, new List<DeviceConfiguration>());
                 var speeds = new[] { 0.25, 0.5, 0.75 };
                 var features = new List<VibrateCmd.VibrateSubcommand>();
                 for (var i = 0u; i < item.Value.VibeCount; ++i)
@@ -129,7 +130,7 @@ namespace Buttplug.Test.Devices.Protocols
                 }
 
                 var testUtil = new ProtocolTestUtils();
-                await testUtil.SetupTest<KiirooGen21Protocol>(item.Key);
+                await testUtil.SetupTest<KiirooGen21Protocol>(item.Key, new List<DeviceConfiguration>());
                 testUtil.TestInvalidVibrateCmd(item.Value.VibeCount);
             }
         }

@@ -12,6 +12,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Buttplug.Core.Messages;
 using Buttplug.Devices;
+using Buttplug.Devices.Configuration;
 using Buttplug.Devices.Protocols;
 using Buttplug.Test.Devices.Protocols.Utils;
 using JetBrains.Annotations;
@@ -28,7 +29,7 @@ namespace Buttplug.Test.Devices.Protocols
         internal async Task TestAllowedMessages(string aDeviceName, VorzeSAProtocol.CommandType aCommandType)
         {
             testUtil = new ProtocolTestUtils();
-            await testUtil.SetupTest<VorzeSAProtocol>(aDeviceName);
+            await testUtil.SetupTest<VorzeSAProtocol>(aDeviceName, new List<DeviceConfiguration>());
 
             if (aCommandType == VorzeSAProtocol.CommandType.Rotate)
             {
@@ -59,7 +60,7 @@ namespace Buttplug.Test.Devices.Protocols
         internal async Task TestStopDeviceCmd(string aDeviceName, byte aPrefix, VorzeSAProtocol.CommandType aCommandType)
         {
             testUtil = new ProtocolTestUtils();
-            await testUtil.SetupTest<VorzeSAProtocol>(aDeviceName);
+            await testUtil.SetupTest<VorzeSAProtocol>(aDeviceName, new List<DeviceConfiguration>());
             var expected = new byte[] { aPrefix, (byte)aCommandType, 50 };
 
             if (aCommandType == VorzeSAProtocol.CommandType.Rotate)
@@ -95,7 +96,7 @@ namespace Buttplug.Test.Devices.Protocols
         public async Task TestVorzeA10CycloneCmd(string aDeviceName, byte aPrefix)
         {
             testUtil = new ProtocolTestUtils();
-            await testUtil.SetupTest<VorzeSAProtocol>(aDeviceName);
+            await testUtil.SetupTest<VorzeSAProtocol>(aDeviceName, new List<DeviceConfiguration>());
             var expected = new byte[] { aPrefix, 0x1, 50 };
 
             await testUtil.TestDeviceMessage(new VorzeA10CycloneCmd(4, 50, false),
@@ -116,7 +117,7 @@ namespace Buttplug.Test.Devices.Protocols
         public async Task TestRotateCmd(string aDeviceName, byte aPrefix)
         {
             testUtil = new ProtocolTestUtils();
-            await testUtil.SetupTest<VorzeSAProtocol>(aDeviceName);
+            await testUtil.SetupTest<VorzeSAProtocol>(aDeviceName, new List<DeviceConfiguration>());
             var expected = new byte[] { aPrefix, 0x1, 50 };
 
             await testUtil.TestDeviceMessage(
@@ -139,7 +140,7 @@ namespace Buttplug.Test.Devices.Protocols
         public async Task TestSingleMotorVibrateCmd(string aDeviceName, byte aPrefix)
         {
             testUtil = new ProtocolTestUtils();
-            await testUtil.SetupTest<VorzeSAProtocol>(aDeviceName);
+            await testUtil.SetupTest<VorzeSAProtocol>(aDeviceName, new List<DeviceConfiguration>());
             var expected = new byte[] { aPrefix, 0x03, 50 };
 
             await testUtil.TestDeviceMessage(new SingleMotorVibrateCmd(4, 0.5),
@@ -160,7 +161,7 @@ namespace Buttplug.Test.Devices.Protocols
         public async Task TestVibrateCmd(string aDeviceName, byte aPrefix)
         {
             testUtil = new ProtocolTestUtils();
-            await testUtil.SetupTest<VorzeSAProtocol>(aDeviceName);
+            await testUtil.SetupTest<VorzeSAProtocol>(aDeviceName, new List<DeviceConfiguration>());
             var expected = new byte[] { aPrefix, 0x3, 50 };
 
             await testUtil.TestDeviceMessage(
@@ -183,7 +184,7 @@ namespace Buttplug.Test.Devices.Protocols
         internal async Task TestInvalidCmds(string aDeviceName, VorzeSAProtocol.CommandType aCommandType)
         {
             testUtil = new ProtocolTestUtils();
-            await testUtil.SetupTest<VorzeSAProtocol>(aDeviceName);
+            await testUtil.SetupTest<VorzeSAProtocol>(aDeviceName, new List<DeviceConfiguration>());
             if (aCommandType == VorzeSAProtocol.CommandType.Rotate)
             {
                 testUtil.TestInvalidDeviceMessage(RotateCmd.Create(4, 1, 0.5, false, 0));

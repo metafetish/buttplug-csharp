@@ -26,7 +26,7 @@ namespace Buttplug.Test.Devices.Protocols.Utils
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:ElementsMustBeDocumented", Justification = "Test classes can skip documentation requirements")]
     public interface IProtocolTestUtils
     {
-        Task SetupTest<T>(string aDeviceName, bool aShouldInitialize = false) where T : IButtplugDeviceProtocol;
+        Task SetupTest<T>(string aDeviceName, List<DeviceConfiguration> aConfigs, bool aShouldInitialize = false) where T : IButtplugDeviceProtocol;
 
         Task TestDeviceMessageNoop(ButtplugDeviceMessage aOutgoingMessage);
     }
@@ -36,13 +36,15 @@ namespace Buttplug.Test.Devices.Protocols.Utils
     {
         private TestDeviceImpl _testImpl;
         private IButtplugDevice _testDevice;
+        private List<DeviceConfiguration> _configs;
 
-        public async Task SetupTest<T>(string aDeviceName, bool aShouldInitialize = true)
+        public async Task SetupTest<T>(string aDeviceName, List<DeviceConfiguration> aConfigs, bool aShouldInitialize = true)
         where T : IButtplugDeviceProtocol
         {
             var logMgr = new ButtplugLogManager();
             _testImpl = new TestDeviceImpl(logMgr, aDeviceName);
             _testDevice = new ButtplugDevice(logMgr, typeof(T), _testImpl);
+            _configs = aConfigs;
 
             if (!aShouldInitialize)
             {
@@ -54,7 +56,7 @@ namespace Buttplug.Test.Devices.Protocols.Utils
 
         public async Task Initialize()
         {
-            await _testDevice.InitializeAsync(new List<DeviceConfiguration>());
+            await _testDevice.InitializeAsync(_configs);
             _testImpl.LastWritten.Clear();
         }
 

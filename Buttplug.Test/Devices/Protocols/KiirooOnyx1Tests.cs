@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Buttplug.Core.Messages;
 using Buttplug.Devices;
+using Buttplug.Devices.Configuration;
 using Buttplug.Devices.Protocols;
 using Buttplug.Test.Devices.Protocols.Utils;
 using JetBrains.Annotations;
@@ -31,7 +32,7 @@ namespace Buttplug.Test.Devices.Protocols
         public async Task Init()
         {
             testUtil = new ProtocolTestUtils();
-            await testUtil.SetupTest<KiirooGen1Protocol>("ONYX");
+            await testUtil.SetupTest<KiirooGen1Protocol>("ONYX", new List<DeviceConfiguration>());
         }
 
         [Test]

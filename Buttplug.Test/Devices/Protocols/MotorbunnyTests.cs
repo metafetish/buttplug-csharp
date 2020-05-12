@@ -3,6 +3,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Buttplug.Core.Messages;
 using Buttplug.Devices;
+using Buttplug.Devices.Configuration;
 using Buttplug.Devices.Protocols;
 using Buttplug.Test.Devices.Protocols.Utils;
 using JetBrains.Annotations;
@@ -23,7 +24,7 @@ namespace Buttplug.Test.Devices.Protocols
             testUtil = new ProtocolTestUtils();
 
             // Just leave name the same as the prefix, we'll set device type via initialize.
-            await testUtil.SetupTest<MotorbunnyProtocol>("MB Controller", false);
+            await testUtil.SetupTest<MotorbunnyProtocol>("MB Controller", new List<DeviceConfiguration>(), false);
         }
 
         [Test]

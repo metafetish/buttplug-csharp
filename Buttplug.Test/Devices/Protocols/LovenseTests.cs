@@ -8,10 +8,12 @@
 // ReSharper disable ConsiderUsingConfigureAwait
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Buttplug.Core.Messages;
 using Buttplug.Devices;
+using Buttplug.Devices.Configuration;
 using Buttplug.Devices.Protocols;
 using Buttplug.Test.Devices.Protocols.Utils;
 using JetBrains.Annotations;
@@ -30,8 +32,13 @@ namespace Buttplug.Test.Devices.Protocols
         {
             testUtil = new ProtocolTestUtils();
 
+            DeviceConfigurationManager.LoadBaseConfigurationFromResource();
+            var mgr = DeviceConfigurationManager.Manager;
+            var pconfigs = mgr.GetProtocolConfig("lovense");
+            var configs = pconfigs.First().DeviceConfigs;
+
             // Just leave name the same as the prefix, we'll set device type via initialize.
-            await testUtil.SetupTest<LovenseProtocol>("LVS", false);
+            await testUtil.SetupTest<LovenseProtocol>("LVS", configs, false);
             testUtil.AddExpectedNotify("DeviceType;", Encoding.ASCII.GetBytes("W:39:000000000000"));
             await testUtil.Initialize();
         }
@@ -39,7 +46,7 @@ namespace Buttplug.Test.Devices.Protocols
         [Test]
         public void TestDeviceName()
         {
-            testUtil.TestDeviceName("Lovense Domi v39");
+            testUtil.TestDeviceName("Lovense Domi");
         }
 
         [Test]
@@ -117,8 +124,13 @@ namespace Buttplug.Test.Devices.Protocols
         {
             testUtil = new ProtocolTestUtils();
 
+            DeviceConfigurationManager.LoadBaseConfigurationFromResource();
+            var mgr = DeviceConfigurationManager.Manager;
+            var pconfigs = mgr.GetProtocolConfig("lovense");
+            var configs = pconfigs.First().DeviceConfigs;
+
             // Just leave name the same as the prefix, we'll set device type via initialize.
-            await testUtil.SetupTest<LovenseProtocol>("LVS", false);
+            await testUtil.SetupTest<LovenseProtocol>("LVS", configs, false);
             testUtil.AddExpectedNotify("DeviceType;", Encoding.ASCII.GetBytes("P:39:000000000000"));
             await testUtil.Initialize();
         }
@@ -126,7 +138,7 @@ namespace Buttplug.Test.Devices.Protocols
         [Test]
         public void TestDeviceName()
         {
-            testUtil.TestDeviceName("Lovense Edge v39");
+            testUtil.TestDeviceName("Lovense Edge");
         }
 
         [Test]
@@ -208,8 +220,13 @@ namespace Buttplug.Test.Devices.Protocols
         {
             testUtil = new ProtocolTestUtils();
 
+            DeviceConfigurationManager.LoadBaseConfigurationFromResource();
+            var mgr = DeviceConfigurationManager.Manager;
+            var pconfigs = mgr.GetProtocolConfig("lovense");
+            var configs = pconfigs.First().DeviceConfigs;
+
             // Just leave name the same as the prefix, we'll set device type via initialize.
-            await testUtil.SetupTest<LovenseProtocol>("LVS", false);
+            await testUtil.SetupTest<LovenseProtocol>("LVS", configs, false);
             testUtil.AddExpectedNotify("DeviceType;", Encoding.ASCII.GetBytes("A:13:000000000000"));
             await testUtil.Initialize();
         }
@@ -217,7 +234,7 @@ namespace Buttplug.Test.Devices.Protocols
         [Test]
         public void TestDeviceName()
         {
-            testUtil.TestDeviceName("Lovense Nora v13");
+            testUtil.TestDeviceName("Lovense Nora");
         }
 
         [Test]

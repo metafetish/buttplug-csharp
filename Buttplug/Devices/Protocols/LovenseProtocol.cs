@@ -11,34 +11,15 @@ using System.Threading.Tasks;
 using Buttplug.Core;
 using Buttplug.Core.Logging;
 using Buttplug.Core.Messages;
+using Buttplug.Devices.Configuration;
 
 namespace Buttplug.Devices.Protocols
 {
-    class LovenseProtocol : ButtplugDeviceProtocol
+    internal class LovenseProtocol : ButtplugDeviceProtocol
     {
-        // Identify Lovense devices against the character we expect to get back from the DeviceType
-        // read. See https://docs.buttplug.io/stpihkal for protocol info.
-        public enum LovenseDeviceType : uint
-        {
-            Max = 'B',
-
-            // Nora is A or C. Set to A here, then on type check, convert C to A.
-            Nora = 'A',
-
-            Ambi = 'L',
-            Lush = 'S',
-            Hush = 'Z',
-            Domi = 'W',
-            Edge = 'P',
-            Osci = 'O',
-            Unknown = 0,
-        }
-
-        private readonly double[] _vibratorSpeeds = { 0, 0 };
-        private uint _vibratorCount = 1;
+        private double[] _vibratorSpeeds = { 0 };
         private bool _clockwise = true;
         private double _rotateSpeed;
-        private LovenseDeviceType _deviceType = LovenseDeviceType.Unknown;
         private string _lastNotifyReceived = string.Empty;
         private TaskCompletionSource<string> _notificationWaiter = new TaskCompletionSource<string>();
 
@@ -49,6 +30,7 @@ namespace Buttplug.Devices.Protocols
                    aInterface)
         {
             AddMessageHandler<StopDeviceCmd>(HandleStopDeviceCmd);
+            AddMessageHandler<LovenseCmd>(HandleLovenseCmd);
         }
 
         public override async Task InitializeAsync(CancellationToken aToken)
@@ -88,13 +70,14 @@ namespace Buttplug.Devices.Protocols
 
             DeviceConfigIdentifier = deviceTypeLetter.ToString();
 
+            /* This block is now handled by the configuration logic
+
             int.TryParse(deviceInfo[1], out var deviceVersion);
             BpLogger.Trace($"Lovense DeviceType Return: {deviceTypeLetter}");
             if (!Enum.IsDefined(typeof(LovenseDeviceType), (uint)deviceTypeLetter))
             {
-                // If we don't know what device this is, just assume it has a single vibrator, call
-                // it unknown, log something.
-                AddCommonMessages();
+                // If we don't know what device this is, just use the defaults
+                // todo: Exception here? Won't that stop the device being configured?
                 throw new ButtplugDeviceException(BpLogger, $"Unknown Lovense Device of Type {deviceTypeLetter} found. Please report to Buttplug Developers by filing an issue at https://github.com/buttplugio/buttplug/");
             }
 
@@ -106,33 +89,42 @@ namespace Buttplug.Devices.Protocols
             {
                 BpLogger.Error("Lovense device type unknown, treating as single vibrator device. Please contact developers for more info.");
             }
-
-            switch (_deviceType)
-            {
-                case LovenseDeviceType.Edge:
-
-                    // Edge has 2 vibrators
-                    _vibratorCount++;
-                    break;
-
-                case LovenseDeviceType.Nora:
-
-                    // Nora has a rotator
-                    AddMessageHandler<RotateCmd>(HandleRotateCmd, new MessageAttributes { FeatureCount = 1 });
-                    break;
-            }
-
-            // Common messages.
-            AddCommonMessages();
+            */
         }
 
-        private void AddCommonMessages()
+        public override Task ConfigureAsync(DeviceConfiguration aConfig, CancellationToken aToken)
         {
-            AddMessageHandler<LovenseCmd>(HandleLovenseCmd);
+            foreach (var command in aConfig.Attributes)
+            {
+                switch (command.Key)
+                {
+                    case "VibrateCmd":
+                        // Add messages
+                        AddMessageHandler<VibrateCmd>(HandleVibrateCmd, command.Value);
+                        AddMessageHandler<SingleMotorVibrateCmd>(HandleSingleMotorVibrateCmd);
 
-            // At present there are no Lovense devices that do not have at least one vibrator.
-            AddMessageHandler<VibrateCmd>(HandleVibrateCmd, new MessageAttributes { FeatureCount = _vibratorCount });
-            AddMessageHandler<SingleMotorVibrateCmd>(HandleSingleMotorVibrateCmd);
+                        // Any other logic
+                        _vibratorSpeeds = new double[command.Value.FeatureCount ?? 1];
+                        for (var i = 0; i < (command.Value.FeatureCount ?? 1); i++)
+                        {
+                            _vibratorSpeeds[i] = 0;
+                        }
+
+                        break;
+
+                    case "RotateCmd":
+                        // Add messages
+                        AddMessageHandler<RotateCmd>(HandleRotateCmd, command.Value);
+
+                        break;
+
+                    default:
+                        BpLogger.Warn($"Protocol {GetType().Name} doesn't have support for configuration specified message {command.Key}. Skipping");
+                        break;
+                }
+            }
+
+            return Task.FromResult<ButtplugMessage>(new Ok(ButtplugConsts.SystemMsgId));
         }
 
         private void NotifyReceived(object sender, ButtplugDeviceDataEventArgs args)
@@ -150,7 +142,7 @@ namespace Buttplug.Devices.Protocols
         {
             BpLogger.Debug("Stopping Device " + Name);
 
-            if (_deviceType == LovenseDeviceType.Nora)
+            if (MsgFuncs.ContainsKey(typeof(RotateCmd)))
             {
                 await HandleRotateCmd(RotateCmd.Create(aMsg.DeviceIndex, aMsg.Id, 0, _clockwise, 1), aToken).ConfigureAwait(false);
             }
@@ -162,12 +154,12 @@ namespace Buttplug.Devices.Protocols
         {
             var cmdMsg = CheckMessageHandler<SingleMotorVibrateCmd>(aMsg);
 
-            return await HandleVibrateCmd(VibrateCmd.Create(cmdMsg.DeviceIndex, cmdMsg.Id, cmdMsg.Speed, _vibratorCount), aToken).ConfigureAwait(false);
+            return await HandleVibrateCmd(VibrateCmd.Create(cmdMsg.DeviceIndex, cmdMsg.Id, cmdMsg.Speed, (uint)_vibratorSpeeds.Length), aToken).ConfigureAwait(false);
         }
 
         private async Task<ButtplugMessage> HandleVibrateCmd(ButtplugDeviceMessage aMsg, CancellationToken aToken)
         {
-            var cmdMsg = CheckGenericMessageHandler<VibrateCmd>(aMsg, _vibratorCount);
+            var cmdMsg = CheckGenericMessageHandler<VibrateCmd>(aMsg, (uint)_vibratorSpeeds.Length);
 
             foreach (var v in cmdMsg.Speeds)
             {
@@ -177,7 +169,7 @@ namespace Buttplug.Devices.Protocols
                 }
 
                 _vibratorSpeeds[v.Index] = v.Speed;
-                var vId = _vibratorCount == 1 ? string.Empty : string.Empty + (v.Index + 1);
+                var vId = _vibratorSpeeds.Length == 1 ? string.Empty : string.Empty + (v.Index + 1);
                 await Interface.WriteValueAsync(
                     Encoding.ASCII.GetBytes($"Vibrate{vId}:{(int)(_vibratorSpeeds[v.Index] * 20)};"), aToken).ConfigureAwait(false);
             }

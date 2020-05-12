@@ -5,7 +5,6 @@
 // </copyright>
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,31 +12,18 @@ using System.Timers;
 using Buttplug.Core;
 using Buttplug.Core.Logging;
 using Buttplug.Core.Messages;
+using Buttplug.Devices.Configuration;
 
 namespace Buttplug.Devices.Protocols
 {
     internal class CuemeProtocol : ButtplugDeviceProtocol
     {
-        internal struct CuemeType
-        {
-            public string Name;
-            public uint VibeCount;
-        }
-
-        private static readonly Dictionary<uint, CuemeType> DevInfos = new Dictionary<uint, CuemeType>
-        {
-            { 1, new CuemeType() { Name = "Mens", VibeCount = 8 } },
-            { 2, new CuemeType() { Name = "Bra", VibeCount = 8 } },
-            { 3, new CuemeType() { Name = "Womens", VibeCount = 4 } },
-        };
-
-        private readonly CuemeType _devInfo;
-        private double[] _vibratorSpeeds = { 0, 0, 0, 0, 0, 0, 0, 0 };
-        internal static readonly double[] NullSpeed = { 0, 0, 0, 0, 0, 0, 0, 0 };
+        private double[] _vibratorSpeeds = { 0 };
+        private double[] _nullSpeed = { 0 };
         private uint _vibeIndex;
 
         // When alternating vibes, switch twice a second
-        internal static readonly uint DelayTimeMS = 500;
+        private static readonly uint DelayTimeMS = 500;
 
         private readonly System.Timers.Timer _updateValueTimer = new System.Timers.Timer();
         private CancellationTokenSource _stopUpdateCommandSource = new CancellationTokenSource();
@@ -49,17 +35,7 @@ namespace Buttplug.Devices.Protocols
                    aInterface)
         {
             var bits = aInterface.Name.Split('_');
-            if (bits.Length == 3 && uint.TryParse(bits[2], out var typeNum) && DevInfos.ContainsKey(typeNum))
-            {
-                _devInfo = DevInfos[typeNum];
-            }
-            else
-            {
-                BpLogger.Warn($"Cannot identify Cueme device {Name}, defaulting to Womens settings.");
-                _devInfo = DevInfos[3];
-            }
-
-            Name = $"Cueme {_devInfo.Name}";
+            DeviceConfigIdentifier = bits.Length == 3 ? bits[2] : "Unknown";
 
             // Create a new timer that wont fire any events just yet
             _updateValueTimer.Interval = DelayTimeMS;
@@ -68,8 +44,37 @@ namespace Buttplug.Devices.Protocols
             aInterface.DeviceRemoved += OnDeviceRemoved;
 
             AddMessageHandler<StopDeviceCmd>(HandleStopDeviceCmd);
-            AddMessageHandler<SingleMotorVibrateCmd>(HandleSingleMotorVibrateCmd);
-            AddMessageHandler<VibrateCmd>(HandleVibrateCmd, new MessageAttributes { FeatureCount = _devInfo.VibeCount });
+        }
+
+        public override Task ConfigureAsync(DeviceConfiguration aConfig, CancellationToken aToken)
+        {
+            foreach (var command in aConfig.Attributes)
+            {
+                switch (command.Key)
+                {
+                    case "VibrateCmd":
+                        // Add messages
+                        AddMessageHandler<VibrateCmd>(HandleVibrateCmd, command.Value);
+                        AddMessageHandler<SingleMotorVibrateCmd>(HandleSingleMotorVibrateCmd);
+
+                        // Any other logic
+                        _nullSpeed = new double[command.Value.FeatureCount ?? 1];
+                        _vibratorSpeeds = new double[command.Value.FeatureCount ?? 1];
+                        for (var i = 0; i < (command.Value.FeatureCount ?? 1); i++)
+                        {
+                            _nullSpeed[i] = 0;
+                            _vibratorSpeeds[i] = 0;
+                        }
+
+                        break;
+
+                    default:
+                        BpLogger.Warn($"Protocol {GetType().Name} doesn't have support for configuration specified message {command.Key}. Skipping");
+                        break;
+                }
+            }
+
+            return Task.FromResult<ButtplugMessage>(new Ok(ButtplugConsts.SystemMsgId));
         }
 
         private void OnDeviceRemoved(object aEvent, EventArgs aArgs)
@@ -83,7 +88,7 @@ namespace Buttplug.Devices.Protocols
 
         private async void CuemeUpdateHandler(object aEvent, ElapsedEventArgs aArgs)
         {
-            if (_vibratorSpeeds.SequenceEqual(NullSpeed))
+            if (_vibratorSpeeds.SequenceEqual(_nullSpeed))
             {
                 _updateValueTimer.Enabled = false;
                 _vibeIndex = 0;
@@ -103,7 +108,7 @@ namespace Buttplug.Devices.Protocols
             }
             catch (ButtplugDeviceException ex)
             {
-                BpLogger.Error($"Cannot send update to Cueme {_devInfo.Name}, device may stick on a single vibrator.");
+                BpLogger.Error($"Cannot send update to Cueme {Name}, device may stick on a single vibrator.");
                 _updateValueTimer.Enabled = false;
             }
 
@@ -119,7 +124,7 @@ namespace Buttplug.Devices.Protocols
                 nextVibe++;
 
                 // Wrap back to 0
-                if (nextVibe == _devInfo.VibeCount)
+                if (nextVibe == _vibratorSpeeds.Length)
                 {
                     nextVibe = 0;
                 }
@@ -149,12 +154,12 @@ namespace Buttplug.Devices.Protocols
         {
             var cmdMsg = CheckMessageHandler<SingleMotorVibrateCmd>(aMsg);
 
-            return await HandleVibrateCmd(VibrateCmd.Create(cmdMsg.DeviceIndex, cmdMsg.Id, cmdMsg.Speed, _devInfo.VibeCount), aToken).ConfigureAwait(false);
+            return await HandleVibrateCmd(VibrateCmd.Create(cmdMsg.DeviceIndex, cmdMsg.Id, cmdMsg.Speed, (uint)_vibratorSpeeds.Length), aToken).ConfigureAwait(false);
         }
 
         private Task<ButtplugMessage> HandleVibrateCmd(ButtplugDeviceMessage aMsg, CancellationToken aToken)
         {
-            var cmdMsg = CheckGenericMessageHandler<VibrateCmd>(aMsg, _devInfo.VibeCount);
+            var cmdMsg = CheckGenericMessageHandler<VibrateCmd>(aMsg, (uint)_vibratorSpeeds.Length);
 
             var newVibratorSpeeds = (double[])_vibratorSpeeds.Clone();
 
