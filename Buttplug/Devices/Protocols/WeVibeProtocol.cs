@@ -16,6 +16,20 @@ namespace Buttplug.Devices.Protocols
 {
     internal class WeVibeProtocol : ButtplugDeviceProtocol
     {
+        private class CommConfig
+        {
+            public readonly CommunicationMode Mode = CommunicationMode.FourBit;
+            public readonly int NumberOfLevels = 15;
+
+            public CommConfig() { }
+
+            public CommConfig(int nLevels, CommunicationMode mode = CommunicationMode.EightBit)
+            {
+                Mode = mode;
+                NumberOfLevels = nLevels;
+            }
+        }
+
         private static readonly string[] DualVibes =
         {
             "Cougar",
@@ -26,8 +40,10 @@ namespace Buttplug.Devices.Protocols
             "Gala",
             "Nova",
             "NOVAV2",
+            "Nova 2",
             "Sync",
             "Vector",
+            "Chorus",
         };
 
         private static readonly Dictionary<string, string> NameMap = new Dictionary<string, string>()
@@ -38,15 +54,30 @@ namespace Buttplug.Devices.Protocols
             { "NOVAV2", "Nova" },
         };
 
-        private static readonly string[] EightBitSpeed =
+        /// <summary>
+        /// Maps newer Wevibe devices to a communication mode.  If not specifed below devices default to CommunicationMode.FourBit.
+        /// </summary>
+        private static readonly Dictionary<string, CommConfig> DeviceCommMap = new Dictionary<string, CommConfig>()
         {
-            "Melt",
-            "Moxie",
-            "Vector",
+            { "Melt",   new CommConfig(12, CommunicationMode.EightBit) },
+            { "Moxie",  new CommConfig(12, CommunicationMode.EightBit) },
+            { "Vector", new CommConfig(12, CommunicationMode.EightBit) },
+            { "Nova 2", new CommConfig(30, CommunicationMode.EightBitVersion2) },
+            { "Chorus", new CommConfig(30, CommunicationMode.EightBitVersion2) },
         };
 
+        /// <summary>
+        /// Selects which pattern of bytes to write to the device
+        /// </summary>
+        public enum CommunicationMode
+        {
+            FourBit,
+            EightBit,
+            EightBitVersion2,
+        }
+
         private readonly uint _vibratorCount = 1;
-        private readonly bool _eightBitSpeed = false;
+        private readonly CommConfig _commConfig;
         private readonly double[] _vibratorSpeed = { 0, 0 };
 
         public WeVibeProtocol(IButtplugLogManager aLogManager,
@@ -65,9 +96,13 @@ namespace Buttplug.Devices.Protocols
                 Name = $"WeVibe {NameMap[aInterface.Name]}";
             }
 
-            if (EightBitSpeed.Contains(aInterface.Name))
+            if (DeviceCommMap.ContainsKey(aInterface.Name) )
             {
-                _eightBitSpeed = true;
+                _commConfig = DeviceCommMap[aInterface.Name];
+            }
+            else
+            {
+                _commConfig = new CommConfig(); //Use the original 4bit protocol
             }
 
             AddMessageHandler<SingleMotorVibrateCmd>(HandleSingleMotorVibrateCmd);
@@ -115,13 +150,23 @@ namespace Buttplug.Devices.Protocols
             var rSpeedInt = 0;
             var rSpeedExt = 0;
 
-            if (_eightBitSpeed)
+            if (_commConfig.Mode == CommunicationMode.EightBit)
             {
-                rSpeedInt = Convert.ToUInt16(_vibratorSpeed[0] * 12);
-                rSpeedExt = Convert.ToUInt16(_vibratorSpeed[_vibratorCount - 1] * 12);
+                rSpeedInt = Convert.ToUInt16(_vibratorSpeed[0] * _commConfig.NumberOfLevels);
+                rSpeedExt = Convert.ToUInt16(_vibratorSpeed[_vibratorCount - 1] * _commConfig.NumberOfLevels);
 
-                data[3] = Convert.ToByte(rSpeedExt + 3); // External
-                data[4] = Convert.ToByte(rSpeedInt + 3); // Internal
+                data[2] = Convert.ToByte(rSpeedExt + 3); // External
+                data[3] = Convert.ToByte(rSpeedInt + 3); // Internal5
+                data[4] = Convert.ToByte(rSpeedInt == 0 ? 0 : 1);
+                data[4] |= Convert.ToByte(rSpeedExt == 0 ? 0 : 2);
+            }
+            else if (_commConfig.Mode == CommunicationMode.EightBitVersion2)
+            {
+                rSpeedInt = Convert.ToUInt16(_vibratorSpeed[0] * _commConfig.NumberOfLevels);
+                rSpeedExt = Convert.ToUInt16(_vibratorSpeed[_vibratorCount - 1] * _commConfig.NumberOfLevels);
+
+                data[2] = Convert.ToByte(rSpeedExt); // External
+                data[3] = Convert.ToByte(rSpeedInt); // Internal
                 data[5] = Convert.ToByte(rSpeedInt == 0 ? 0 : 1);
                 data[5] |= Convert.ToByte(rSpeedExt == 0 ? 0 : 2);
             }
@@ -131,7 +176,7 @@ namespace Buttplug.Devices.Protocols
                 rSpeedExt = Convert.ToUInt16(_vibratorSpeed[_vibratorCount - 1] * 15);
 
                 data[3] = Convert.ToByte(rSpeedExt); // External
-                data[3] |= Convert.ToByte(rSpeedInt << 4); // Internal
+                data[3] |= Convert.ToByte(rSpeedInt << 4); // Internalq
             }
 
             // ReSharper disable once InvertIf

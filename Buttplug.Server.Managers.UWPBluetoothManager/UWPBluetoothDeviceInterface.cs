@@ -108,11 +108,30 @@ namespace Buttplug.Server.Managers.UWPBluetoothManager
                         continue;
                     }
 
-                    var chrResult = await service.GetCharacteristicsAsync();
-                    if (chrResult.Status != GattCommunicationStatus.Success)
+                    int RetryCount = 5;
+                    int RetryDelay = 2000;
+
+                    GattCharacteristicsResult chrResult = null;
+
+                    while (RetryCount >= 0)
                     {
-                        throw new ButtplugDeviceException(BpLogger,
-                            $"Cannot connect to characteristics for {serviceGuid} of {_bleDevice.Name}: {chrResult.Status}");
+                        
+                        //If we cannot connect on the first try, retry a few times
+                        chrResult = await service.GetCharacteristicsAsync();
+                        if (RetryCount >= 0 && (chrResult.Status == GattCommunicationStatus.AccessDenied || chrResult.Status == GattCommunicationStatus.Unreachable))
+                        {
+                            await Task.Delay(RetryDelay);
+                            RetryCount -= 1;
+                            continue;
+                        }
+
+                        if (chrResult.Status != GattCommunicationStatus.Success)
+                        {
+                            throw new ButtplugDeviceException(BpLogger,
+                                $"Cannot connect to characteristics for {serviceGuid} of {_bleDevice.Name}: {chrResult.Status}");
+                        }
+
+                        break; 
                     }
 
                     foreach (var chr in chrResult.Characteristics)
@@ -345,9 +364,13 @@ namespace Buttplug.Server.Managers.UWPBluetoothManager
         public override void Disconnect()
         {
             InvokeDeviceRemoved();
-            _indexedChars.Clear();
+            
+            if(_indexedChars != null)
+                _indexedChars.Clear();
 
-            _bleDevice.Dispose();
+            if(_bleDevice != null)
+                _bleDevice.Dispose();
+    
             _bleDevice = null;
         }
     }

@@ -167,15 +167,10 @@ namespace Buttplug.Server.Managers.UWPBluetoothManager
                 InvokeDeviceAdded(new DeviceAddedEventArgs(btDevice));
             }
             catch (Exception ex)
-            {
-                if (btDevice != null)
-                {
-                    btDevice.Disconnect();
-                }
-                else
-                {
-                    bleDevice?.Disconnect();
-                }
+            { 
+                btDevice?.Disconnect(); 
+                 
+                bleDevice?.Disconnect(); 
                 
                 BpLogger.Error(
                     $"Cannot connect to device {advertName} {btAddr}: {ex.Message}\n{ex.StackTrace}");

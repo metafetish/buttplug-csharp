@@ -16,6 +16,8 @@ using JetBrains.Annotations;
 
 namespace Buttplug.Client
 {
+    public delegate void SensorEventHandler(object sender, object data);
+
     /// <summary>
     /// The Buttplug Client representation of a Buttplug Device connected to a server.
     /// </summary>
@@ -200,6 +202,24 @@ namespace Buttplug.Client
             {
                 throw new ButtplugDeviceException($"Device {Name} does not support message type {typeof(T).Name}");
             }
+        }
+
+        public async Task ReadSensorCommand(StandardSensorModalities modality)
+        {
+            CheckAllowedMessageType<ReadSensorCmd>();
+            await SendMessageAsync(ReadSensorCmd.Create(modality)).ConfigureAwait(false);
+        }
+
+        public async Task SubscribeSensorCommand(StandardSensorModalities modality, SensorEventHandler callback)
+        {
+            CheckAllowedMessageType<SubscribeSensorCmd>();
+            await SendMessageAsync(SubscribeSensorCmd.Create(modality, callback, true)).ConfigureAwait(false);
+        }
+
+        public async Task UnsubscribeSensorCommand(StandardSensorModalities modality, SensorEventHandler callback)
+        {
+            CheckAllowedMessageType<SubscribeSensorCmd>();
+            await SendMessageAsync(SubscribeSensorCmd.Create(modality, callback, false)).ConfigureAwait(false);
         }
 
         public async Task SendVibrateCmd(double aSpeed)

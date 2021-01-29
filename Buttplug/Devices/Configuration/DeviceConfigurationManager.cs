@@ -62,6 +62,7 @@ namespace Buttplug.Devices.Configuration
             AddProtocol("vibratissimo", typeof(VibratissimoProtocol));
             AddProtocol("vorze-sa", typeof(VorzeSAProtocol));
             AddProtocol("wevibe", typeof(WeVibeProtocol));
+            AddProtocol("witmotion", typeof(WitMotionProtocol));
             AddProtocol("youcups", typeof(YoucupsProtocol));
             AddProtocol("vorze-cyclone-x", typeof(CycloneX10Protocol));
             AddProtocol("youou", typeof(YououProtocol));

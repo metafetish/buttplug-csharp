@@ -19,10 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Buttplug\Buttplug.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Reference Include="System.Management" />
     <Reference Include="System.Runtime.WindowsRuntime">
       <HintPath>C:\Windows\Microsoft.NET\Framework\v4.0.30319\System.Runtime.WindowsRuntime.dll</HintPath>
@@ -39,5 +35,9 @@
 
   <ItemGroup>
     <None Include="LICENSE" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Buttplug\BP.csproj" />
   </ItemGroup>
 </Project>

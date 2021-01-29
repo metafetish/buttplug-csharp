@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using Buttplug.Client;
 using Buttplug.Core.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -25,6 +26,24 @@ namespace Buttplug.Core.Messages
         public Ok(uint aId)
             : base(aId)
         {
+        }
+    }
+
+    /// <summary>
+    /// Signifies the success of the last message/query.
+    /// </summary>
+    [ButtplugMessageMetadata("SensorResult", 1)]
+    public class SensorResult : ButtplugMessage, IButtplugMessageOutgoingOnly
+    {
+        public SensorData Data;
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Ok"/> class.
+        /// </summary>
+        /// <param name="aId">Message ID. Should match the ID of the message being responded to.</param>
+        public SensorResult(uint aId, SensorData data)
+            : base(aId)
+        {
+            Data = data;
         }
     }
 
@@ -1357,6 +1376,66 @@ namespace Buttplug.Core.Messages
         public StopAllDevices(uint aId = ButtplugConsts.DefaultMsgId)
             : base(aId)
         {
+        }
+    }
+
+    [ButtplugMessageMetadata("ReadSensor", 1)]
+    public class ReadSensorCmd : ButtplugDeviceMessage
+    {
+        public StandardSensorModalities Modality;
+
+        public ReadSensorCmd(StandardSensorModalities modality = StandardSensorModalities.All)
+            : base((uint)modality)
+        {
+        }
+
+        public static ReadSensorCmd Create(StandardSensorModalities modality)
+        {
+            ReadSensorCmd cmd = new ReadSensorCmd(modality);
+            return cmd;
+        }
+    }
+
+    [ButtplugMessageMetadata("ReadSensorResponse", 1)]
+    public class ReadSensorResponseCmd : ButtplugDeviceMessage
+    {
+        public StandardSensorModalities Modality;
+
+        public ReadSensorResponseCmd(StandardSensorModalities modality = StandardSensorModalities.All)
+            : base((uint)modality)
+        {
+        }
+
+        public static ReadSensorResponseCmd Create(StandardSensorModalities modality)
+        {
+            ReadSensorResponseCmd cmd = new ReadSensorResponseCmd(modality);
+            return cmd;
+        }
+    }
+
+    [ButtplugMessageMetadata("SubscribeSensor", 1)]
+    public class SubscribeSensorCmd : ButtplugDeviceMessage
+    {
+        public StandardSensorModalities Modality;
+        public SensorEventHandler Callback;
+
+        /// <summary>
+        /// True to subscribe, false to unsubscribe
+        /// </summary>
+        public bool Subscribe = true;
+
+        public SubscribeSensorCmd(StandardSensorModalities modality, SensorEventHandler callback, bool subscribe)
+            : base((uint)modality)
+        {
+            Subscribe = subscribe;
+            Modality = modality;
+            Callback = callback;
+        }
+
+        public static SubscribeSensorCmd Create(StandardSensorModalities modality, SensorEventHandler callback, bool subscribe = true)
+        {
+            SubscribeSensorCmd cmd = new SubscribeSensorCmd(modality, callback, subscribe);
+            return cmd;
         }
     }
 }
